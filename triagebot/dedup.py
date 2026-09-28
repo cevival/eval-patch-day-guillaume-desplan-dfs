@@ -1,6 +1,14 @@
 def is_usable(ticket):
-  message = ticket.get("message", "")
-  return bool(message and message.strip())
+  """Un ticket est exploitable s'il a un joueur et un message texte non vide."""
+  if not isinstance(ticket, dict):
+    return False
+
+  player = ticket.get("player")
+  message = ticket.get("message")
+  if not isinstance(player, str) or not isinstance(message, str):
+    return False
+
+  return message.strip() != ""
 
 
 def split_usable_tickets(tickets):
