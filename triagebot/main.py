@@ -5,6 +5,7 @@ from .config import TICKETS_PATH, RESULTS_PATH
 from .tickets import load_tickets, TicketLoadError
 from .dedup import split_usable_tickets, deduplicate_tickets
 from .llm_client import analyze_ticket, OllamaUnavailableError
+from .dashboard import print_dashboard
 
 
 def build_empty_ticket_analysis():
@@ -62,7 +63,8 @@ def main():
   with open(RESULTS_PATH, "w", encoding="utf-8") as file:
     json.dump(results, file, ensure_ascii=False, indent=2)
 
-  print(f"{len(results)} tickets traités. Résultats enregistrés dans {RESULTS_PATH}")
+  print_dashboard(results)
+  print(f"\nRésultats enregistrés dans {RESULTS_PATH}")
 
 
 if __name__ == "__main__":
