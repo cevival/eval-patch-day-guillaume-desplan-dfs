@@ -6,6 +6,7 @@ MODEL = os.environ.get("OLLAMA_MODEL", "qwen2.5:3b")
 TICKETS_PATH = "data/tickets.json"
 RESULTS_PATH = "results.json"
 REPORT_PATH = "report.md"
+CACHE_PATH = "cache.db"
 
 CATEGORIES = ["bug", "payment", "account", "suggestion", "toxicity", "autre"]
 SENTIMENTS = ["positive", "neutral", "negative"]
