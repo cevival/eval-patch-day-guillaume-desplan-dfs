@@ -18,3 +18,14 @@ def load_tickets(path):
     raise TicketLoadError("Le fichier de tickets doit contenir une liste de tickets.")
 
   return tickets
+
+
+def remove_malformed_entries(tickets):
+  """Écarte les entrées qui ne sont pas des tickets (pas un objet JSON, ou pas d'id)."""
+  valid_tickets = []
+  for ticket in tickets:
+    if isinstance(ticket, dict) and "id" in ticket:
+      valid_tickets.append(ticket)
+
+  ignored_count = len(tickets) - len(valid_tickets)
+  return valid_tickets, ignored_count

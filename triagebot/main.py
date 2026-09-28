@@ -2,7 +2,7 @@ import json
 import sys
 
 from .config import TICKETS_PATH, RESULTS_PATH, REPORT_PATH
-from .tickets import load_tickets, TicketLoadError
+from .tickets import load_tickets, remove_malformed_entries, TicketLoadError
 from .dedup import split_usable_tickets, deduplicate_tickets
 from .llm_client import analyze_ticket, OllamaUnavailableError
 from .dashboard import print_dashboard
@@ -16,12 +16,12 @@ def build_empty_ticket_analysis():
     "category": "autre",
     "severity": 1,
     "sentiment": "neutral",
-    "summary": "Message vide, rien à analyser.",
+    "summary": "Ticket vide ou incomplet, rien à analyser.",
   }
 
 
 def process_tickets(tickets):
-  usable, unusable = split_usable_tickets(tickets)
+  usable, _ = split_usable_tickets(tickets)
   unique_tickets, duplicate_of = deduplicate_tickets(usable)
 
   analysis_by_id = {}
@@ -60,11 +60,17 @@ def process_tickets(tickets):
 
 
 def main():
+  tickets_path = sys.argv[1] if len(sys.argv) > 1 else TICKETS_PATH
+
   try:
-    tickets = load_tickets(TICKETS_PATH)
+    tickets = load_tickets(tickets_path)
   except TicketLoadError as error:
     print(f"Erreur : {error}")
     sys.exit(1)
+
+  tickets, ignored_count = remove_malformed_entries(tickets)
+  if ignored_count:
+    print(f"Attention : {ignored_count} entrée(s) mal formée(s) ignorée(s) (pas un ticket ou pas d'id).")
 
   try:
     results = process_tickets(tickets)
