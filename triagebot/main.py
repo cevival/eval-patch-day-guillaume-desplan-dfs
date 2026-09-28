@@ -6,6 +6,7 @@ from .tickets import load_tickets, remove_malformed_entries, TicketLoadError
 from .dedup import split_usable_tickets, deduplicate_tickets
 from .llm_client import analyze_ticket, OllamaUnavailableError
 from .drafts import generate_draft, EMPTY_TICKET_DRAFT
+from .security import looks_like_prompt_injection
 from .escalation import get_escalation
 from .dashboard import print_dashboard
 from .report import write_report
@@ -22,6 +23,10 @@ def build_empty_ticket_analysis():
 
 def triage_ticket(ticket):
   analysis, status = analyze_ticket(ticket)
+
+  if looks_like_prompt_injection(ticket["message"]):
+    status = "to_check"
+
   draft = generate_draft(ticket, analysis)
   return analysis, status, draft
 
