@@ -7,6 +7,7 @@ from .dedup import split_usable_tickets, deduplicate_tickets
 from .llm_client import analyze_ticket, OllamaUnavailableError
 from .dashboard import print_dashboard
 from .drafts import generate_draft
+from .escalation import get_escalation
 
 
 def build_empty_ticket_analysis():
@@ -43,9 +44,16 @@ def process_tickets(tickets):
       analysis = build_empty_ticket_analysis()
       status = "skipped_empty"
 
+    escalation = get_escalation(status, analysis)
     draft = generate_draft(ticket, analysis) if status == "ok" else None
 
-    results.append({"ticket": ticket, "analysis": analysis, "status": status, "draft": draft})
+    results.append({
+      "ticket": ticket,
+      "analysis": analysis,
+      "status": status,
+      "escalation": escalation,
+      "draft": draft,
+    })
 
   return results
 
