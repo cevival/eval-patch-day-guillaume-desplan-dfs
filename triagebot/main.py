@@ -4,8 +4,10 @@ import sys
 from .config import TICKETS_PATH, RESULTS_PATH, REPORT_PATH
 from .tickets import load_tickets, remove_malformed_entries, TicketLoadError
 from .dedup import split_usable_tickets, deduplicate_tickets
-from .llm_client import analyze_ticket, OllamaUnavailableError
-from .drafts import generate_draft, EMPTY_TICKET_DRAFT
+from .llm_client import OllamaUnavailableError
+from .cache import init_cache
+from .triage import triage_ticket
+from .drafts import EMPTY_TICKET_DRAFT
 from .escalation import get_escalation
 from .dashboard import print_dashboard
 from .report import write_report
@@ -20,20 +22,14 @@ def build_empty_ticket_analysis():
   }
 
 
-def triage_ticket(ticket):
-  analysis, status = analyze_ticket(ticket)
-  draft = generate_draft(ticket, analysis)
-  return analysis, status, draft
-
-
-def process_tickets(tickets):
+def process_tickets(tickets, cache_connection):
   usable, _ = split_usable_tickets(tickets)
   unique_tickets, duplicate_of = deduplicate_tickets(usable)
 
   triage_by_id = {}
   for ticket in unique_tickets:
     print(f"Analyse du ticket #{ticket['id']}...")
-    triage_by_id[ticket["id"]] = triage_ticket(ticket)
+    triage_by_id[ticket["id"]] = triage_ticket(ticket, cache_connection)
 
   results = []
   for ticket in tickets:
@@ -70,11 +66,14 @@ def main():
   if ignored_count:
     print(f"Attention : {ignored_count} entrée(s) mal formée(s) ignorée(s) (pas un ticket ou pas d'id).")
 
+  cache_connection = init_cache()
   try:
-    results = process_tickets(tickets)
+    results = process_tickets(tickets, cache_connection)
   except OllamaUnavailableError as error:
     print(f"Erreur : {error}")
     sys.exit(1)
+  finally:
+    cache_connection.close()
 
   with open(RESULTS_PATH, "w", encoding="utf-8") as file:
     json.dump(results, file, ensure_ascii=False, indent=2)
