@@ -1,13 +1,14 @@
 import json
 import sys
 
-from .config import TICKETS_PATH, RESULTS_PATH
+from .config import TICKETS_PATH, RESULTS_PATH, REPORT_PATH
 from .tickets import load_tickets, TicketLoadError
 from .dedup import split_usable_tickets, deduplicate_tickets
 from .llm_client import analyze_ticket, OllamaUnavailableError
 from .dashboard import print_dashboard
 from .drafts import generate_draft
 from .escalation import get_escalation
+from .report import write_report
 
 
 def build_empty_ticket_analysis():
@@ -74,8 +75,10 @@ def main():
   with open(RESULTS_PATH, "w", encoding="utf-8") as file:
     json.dump(results, file, ensure_ascii=False, indent=2)
 
+  write_report(results, REPORT_PATH)
   print_dashboard(results)
   print(f"\nRésultats enregistrés dans {RESULTS_PATH}")
+  print(f"Rapport enregistré dans {REPORT_PATH}")
 
 
 if __name__ == "__main__":
